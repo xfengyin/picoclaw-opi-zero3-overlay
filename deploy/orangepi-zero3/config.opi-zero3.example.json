@@ -26,13 +26,13 @@
       "model_name": "deepseek-v4-flash",
       "model": "openai/DeepSeek-V4-Flash",
       "api_keys": ["sk-你的令牌"],
-      "api_base": "http://192.168.31.101:3001/v1"
+      "api_base": "http://<NAS-LAN-IP>:3001/v1"
     },
     {
       "model_name": "glm-5.2",
       "model": "openai/glm-5.2",
       "api_keys": ["sk-你的令牌"],
-      "api_base": "http://192.168.31.101:3001/v1"
+      "api_base": "http://<NAS-LAN-IP>:3001/v1"
     }
   ],
   "gateway": {

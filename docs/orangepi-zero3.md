@@ -94,17 +94,17 @@
 
 ```bash
 # 浏览器打开（需登录 Gitea）下载 picoclaw-opi-zero3-linux-arm64:
-#   http://192.168.31.101:3100/admin/picoclaw-opi-zero3/releases
+#   http://<NAS-LAN-IP>:3100/admin/picoclaw-opi-zero3/releases
 # 或命令行直接下载（nightly 标签）:
 wget --user <Gitea用户名> --password <令牌或密码> \
-  http://192.168.31.101:3100/admin/picoclaw-opi-zero3/releases/download/nightly/picoclaw-opi-zero3-linux-arm64
+  http://<NAS-LAN-IP>:3100/admin/picoclaw-opi-zero3/releases/download/nightly/picoclaw-opi-zero3-linux-arm64
 ```
 
 ### 3.2 从源码构建（x86 机器上交叉编译）
 
 ```bash
 # 需要 Go 1.25.12+（golang.google.cn 或 https://go.dev/dl/）
-git clone http://192.168.31.101:3100/admin/picoclaw-opi-zero3.git   # 私有仓库，需凭据
+git clone http://<NAS-LAN-IP>:3100/admin/picoclaw-opi-zero3.git   # 私有仓库，需凭据
 cd picoclaw-opi-zero3
 make opi-zero3 opi-info        # 产出 build/*-linux-arm64
 ```
@@ -136,7 +136,7 @@ sudo deploy/orangepi-zero3/install.sh --binary ./build/picoclaw-opi-zero3-linux-
   "model_name": "deepseek-v4-flash",
   "model": "openai/DeepSeek-V4-Flash",
   "api_keys": ["sk-你的令牌"],
-  "api_base": "http://192.168.31.101:3001/v1"
+  "api_base": "http://<NAS-LAN-IP>:3001/v1"
 }
 ```
 
@@ -185,7 +185,7 @@ journalctl -u picoclaw -f         # 实时日志（含 opi_zero3 温度采样）
 5. 向提交写入 `opi-zero3-ci` 状态摘要（提交页可见，同时反映测试与 vet 结果）；
 6. **仅 main 分支**：发布滚动 Nightly Release（`nightly` 标签预发布版），把
    arm64/amd64/opi-info 三个二进制与 SHA256SUMS.txt 作为附件挂到
-   `http://192.168.31.101:3100/admin/picoclaw-opi-zero3/releases`
+   `http://<NAS-LAN-IP>:3100/admin/picoclaw-opi-zero3/releases`
    （仓库为私有，下载需 Gitea 凭据）。
 
 实测一次完整 run（#10197 / 2026-10-15 / commit `ee8d2a46`）：**7 分 03 秒** —— 克隆 +
