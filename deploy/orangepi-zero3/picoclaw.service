@@ -1,0 +1,45 @@
+[Unit]
+Description=PicoClaw AI assistant (Orange Pi Zero3 adaptation)
+Documentation=https://docs.picoclaw.io
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=picoclaw
+Group=picoclaw
+SupplementaryGroups=dialout audio
+WorkingDirectory=/var/lib/picoclaw
+Environment=HOME=/var/lib/picoclaw
+Environment=PICOCLAW_OPI_LED=1
+Environment=PICOCLAW_OPI_THERMAL_INTERVAL=60
+Environment=PICOCLAW_OPI_THERMAL_MAX=85
+EnvironmentFile=-/etc/picoclaw/env
+ExecStart=/usr/local/bin/picoclaw gateway
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Orange Pi Zero3 ships 1/1.5/2/4GB RAM. The install script enables a 512MB
+# ZRAM swap device on <=2GB boards; these caps keep the gateway comfortably
+# inside physical RAM while leaving headroom for the kernel.
+MemoryHigh=400M
+MemoryMax=600M
+TasksMax=512
+
+# No WatchdogSec here: the gateway never sends sd_notify WATCHDOG=1, so a
+# service watchdog would only make systemd kill and restart it every interval.
+# Hardware coverage comes from the manager-level RuntimeWatchdogSec drop-in the
+# install script writes to /etc/systemd/system.conf.d/, where PID 1 pets
+# /dev/watchdog itself.
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/picoclaw /var/log/picoclaw
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

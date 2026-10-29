@@ -1,0 +1,63 @@
+{
+  "version": 3,
+  "agents": {
+    "defaults": {
+      "workspace": "/var/lib/picoclaw/workspace",
+      "restrict_to_workspace": true,
+      "model_name": "deepseek-v4-flash",
+      "max_tokens": 4096,
+      "context_window": 65536,
+      "temperature": 0.7,
+      "max_tool_iterations": 12,
+      "summarize_message_threshold": 20,
+      "summarize_token_percent": 75,
+      "split_on_marker": false,
+      "max_llm_retries": 2,
+      "llm_retry_backoff_secs": 2,
+      "tool_feedback": {
+        "enabled": false,
+        "max_args_length": 300,
+        "separate_messages": false
+      }
+    }
+  },
+  "model_list": [
+    {
+      "model_name": "deepseek-v4-flash",
+      "model": "openai/DeepSeek-V4-Flash",
+      "api_keys": ["sk-你的令牌"],
+      "api_base": "http://192.168.31.101:3001/v1"
+    },
+    {
+      "model_name": "glm-5.2",
+      "model": "openai/glm-5.2",
+      "api_keys": ["sk-你的令牌"],
+      "api_base": "http://192.168.31.101:3001/v1"
+    }
+  ],
+  "gateway": {
+    "host": "0.0.0.0",
+    "port": 18790,
+    "hot_reload": false,
+    "log_level": "info"
+  },
+  "events": {
+    "logging": {
+      "enabled": true,
+      "include": ["agent.*", "gateway.*"],
+      "exclude": [],
+      "min_severity": "info",
+      "include_payload": false
+    }
+  },
+  "devices": {
+    "enabled": true,
+    "monitor_usb": true
+  },
+  "heartbeat": {
+    "enabled": true,
+    "interval": 30
+  },
+  "channel_list": {},
+  "tools": {}
+}

@@ -1,0 +1,24 @@
+diff --git a/cmd/picoclaw/internal/agent/helpers.go b/cmd/picoclaw/internal/agent/helpers.go
+index e22e1948..b46ce8e0 100644
+--- a/cmd/picoclaw/internal/agent/helpers.go
++++ b/cmd/picoclaw/internal/agent/helpers.go
+@@ -52,6 +52,7 @@ func agentCmd(message, sessionKey, model string, debug bool) error {
+ 	msgBus := bus.NewMessageBus()
+ 	defer msgBus.Close()
+ 	agentLoop := agent.NewAgentLoop(cfg, msgBus, provider)
++	attachBoardSupport(agentLoop)
+ 	defer agentLoop.Close()
+ 
+ 	// Print agent startup info (only for interactive mode)
+diff --git a/pkg/gateway/gateway.go b/pkg/gateway/gateway.go
+index 41592937..e6b29f5b 100644
+--- a/pkg/gateway/gateway.go
++++ b/pkg/gateway/gateway.go
+@@ -202,6 +202,7 @@ func Run(debug bool, homePath, configPath string, allowEmptyStartup bool) (runEr
+ 
+ 	msgBus := bus.NewMessageBus()
+ 	agentLoop := agent.NewAgentLoop(cfg, msgBus, provider)
++	attachBoardSupport(agentLoop)
+ 	msgBus.SetEventPublisher(agentLoop.RuntimeEventBus())
+ 	publishGatewayEvent(agentLoop, runtimeevents.KindGatewayStart, startedAt, nil)
+ 

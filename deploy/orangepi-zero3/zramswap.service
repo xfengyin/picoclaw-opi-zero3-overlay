@@ -1,0 +1,19 @@
+[Unit]
+Description=ZRAM compressed swap for low-memory Orange Pi boards
+Documentation=https://www.kernel.org/doc/html/latest/admin-guide/blockdev/zram.html
+Before=swap.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+# 512MB compressed swap: sized for Orange Pi Zero3 1GB/1.5GB boards; the
+# install script can override the size via /etc/picoclaw/zram-size.
+ExecStart=/bin/bash -c 'modprobe zram 2>/dev/null || true; \
+  SIZE=$(cat /etc/picoclaw/zram-size 2>/dev/null || echo 512M); \
+  echo $SIZE > /sys/block/zram0/disksize 2>/dev/null || true; \
+  mkswap /dev/zram0 >/dev/null 2>&1 || true; \
+  swapon -p 100 /dev/zram0 2>/dev/null || true'
+ExecStop=/sbin/swapoff /dev/zram0 2>/dev/null || true
+
+[Install]
+WantedBy=multi-user.target

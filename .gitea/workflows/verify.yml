@@ -1,0 +1,34 @@
+name: overlay-verify
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  apply-and-build:
+    runs-on: amd64
+    timeout-minutes: 40
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - name: Checkout this overlay
+        uses: https://gitea.com/actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Clone upstream at the base commit
+        run: |
+          set -eu
+          git clone --filter=blob:none https://github.com/sipeed/picoclaw.git up
+          cd up && git checkout 49183d7 && cd ..
+          echo "upstream head: $(git -C up rev-parse --short HEAD)"
+      - name: Apply the overlay and build
+        run: |
+          set -eu
+          ./apply.sh up
+          cd up
+          go install -tags goolm,stdjson github.com/mark3labs/mcp-go/... 2>/dev/null || true
+          timeout 1200 go build -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
+          timeout 900 go test -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./cmd/opi-info/...
+          timeout 900 go vet -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...

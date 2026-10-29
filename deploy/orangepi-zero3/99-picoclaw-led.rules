@@ -1,0 +1,12 @@
+# Grant the picoclaw service user write access to the Orange Pi Zero3 status
+# LED so the PicoClaw gateway can signal state without running as root.
+#
+# The match is by function ("*:status"), not by colour: mainline device trees
+# expose "green:power" and "red:status", and it is the red one that carries the
+# state patterns (verified on Armbian 6.18.x).
+#
+# Install to /etc/udev/rules.d/99-picoclaw-led.rules, then run:
+#   udevadm control --reload-rules
+#   udevadm trigger --subsystem-match=leds
+SUBSYSTEM=="leds", KERNEL=="*:status", GROUP="picoclaw", MODE="0664"
+SUBSYSTEM=="leds", KERNEL=="*:status", RUN+="/bin/chgrp picoclaw /sys%p/brightness /sys%p/trigger", RUN+="/bin/chmod 0664 /sys%p/brightness /sys%p/trigger"
