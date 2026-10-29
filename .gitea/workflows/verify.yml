@@ -17,6 +17,12 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
+      - name: Set up Go from upstream go.mod
+        uses: https://gitea.com/actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: false
+
       - name: Clone upstream at the base commit
         run: |
           set -eu
@@ -28,7 +34,6 @@ jobs:
           set -eu
           bash ./apply.sh up
           cd up
-          go install -tags goolm,stdjson github.com/mark3labs/mcp-go/... 2>/dev/null || true
           timeout 1200 go build -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
           timeout 900 go test -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./cmd/opi-info/...
           timeout 900 go vet -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
