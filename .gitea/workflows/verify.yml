@@ -20,7 +20,7 @@ jobs:
       - name: Set up Go from upstream go.mod
         uses: https://gitea.com/actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version: "1.25.12"
           cache: false
 
       - name: Clone upstream at the base commit
