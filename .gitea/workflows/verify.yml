@@ -26,7 +26,7 @@ jobs:
       - name: Apply the overlay and build
         run: |
           set -eu
-          ./apply.sh up
+          bash ./apply.sh up
           cd up
           go install -tags goolm,stdjson github.com/mark3labs/mcp-go/... 2>/dev/null || true
           timeout 1200 go build -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
