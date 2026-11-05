@@ -1,0 +1,11 @@
+# Build artefacts produced by apply.sh / go build
+/up/
+/build/
+/dist/
+*.test
+*.out
+*.exe
+
+# Local overrides
+.env
+*.local

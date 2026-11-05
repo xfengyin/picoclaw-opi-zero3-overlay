@@ -2,6 +2,7 @@ name: overlay-verify
 on:
   push:
     branches: [main]
+  pull_request:
 permissions:
   contents: read
 jobs:
@@ -17,23 +18,73 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
-      - name: Set up Go from upstream go.mod
-        uses: https://gitea.com/actions/setup-go@v6
-        with:
-          go-version: "1.25.12"
-          cache: false
 
+      # 2026-11-04: 把「克隆上游」提到 setup-go 之前。
+      # 原顺序是先 `go-version: "1.25.12"`（硬编码）再克隆 —— 那个版本号是
+      # **上游 49183d7 的 go.mod 里的值的人工副本**，等于同一个事实写了两处。
+      # 换 base commit 时若忘了同步，CI 会用错工具链；而且错误表现是
+      # `go: ... requires go >= X`，看起来像代码问题。
+      # 现在从 up/go.mod 读，改 base commit 只改一行。
       - name: Clone upstream at the base commit
         run: |
           set -eu
           git clone --filter=blob:none https://github.com/sipeed/picoclaw.git up
           cd up && git checkout 49183d7 && cd ..
           echo "upstream head: $(git -C up rev-parse --short HEAD)"
-      - name: Apply the overlay and build
+          ver=$(sed -n 's/^go \([0-9][0-9.]*\)$/\1/p' up/go.mod | head -1)
+          [ -n "$ver" ] || { echo "::error::up/go.mod 里没有 go 指令，无法确定工具链版本"; exit 1; }
+          echo "upstream go.mod 要求 go$ver（setup-go 直接读 up/go.mod）"
+
+      - name: Set up Go from upstream go.mod
+        # 用 go-version-file 而不是 ${{ env.X }}：本集群 act_runner v0.3.1 在 `with:` 里
+        # 把 env 字符串按 %t(bool) 格式化，日志实测得到 '%!t(string=1.25.12)'（run 10814）。
+        # 直接指向上游 go.mod，既绕开这个表达式缺陷，也不需要在 workflow 里中转变量。
+        uses: https://gitea.com/actions/setup-go@v6
+        with:
+          go-version-file: up/go.mod
+          cache: false
+
+      - name: Apply the overlay
         run: |
           set -eu
           bash ./apply.sh up
+          echo "--- applied files:"
+          git -C up status --porcelain | head -30
+
+      - name: gofmt must be clean
+        # 与 ci-doctor 同一判据：格式不是风格问题，是「这份代码没被任何工具看过」的信号。
+        run: |
+          set -eu
+          out=$(gofmt -l up/pkg/board up/pkg/gateway up/cmd/opi-info 2>&1)
+          if [ -n "$out" ]; then echo "::error::gofmt would change:"; echo "$out"; exit 1; fi
+          echo "gofmt clean"
+
+      - name: Build the overlay packages
+        run: |
+          set -eu
           cd up
           timeout 1200 go build -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
-          timeout 900 go test -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./cmd/opi-info/...
+
+      - name: Test the overlay packages (with coverage)
+        run: |
+          set -eu
+          cd up
+          timeout 900 go test -count=1 -cover \
+            -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./cmd/opi-info/...
+
+      - name: go vet
+        run: |
+          set -eu
+          cd up
           timeout 900 go vet -tags goolm,stdjson,opi_zero3 ./pkg/board/... ./pkg/gateway/... ./cmd/opi-info/...
+
+      - name: shellcheck apply.sh
+        # apply.sh 是这份 overlay 唯一的可执行入口；它出错的表现是「文件没拷全」，
+        # 而那种失败在 build 阶段才炸，离根因很远。shellcheck 便宜，先过一遍。
+        run: |
+          set -eu
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            echo "shellcheck 不在 runner 镜像里，跳过（不是通过，是没测）"
+            exit 0
+          fi
+          shellcheck -S warning apply.sh deploy/orangepi-zero3/install.sh

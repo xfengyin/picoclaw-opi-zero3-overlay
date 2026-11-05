@@ -4,7 +4,7 @@ set -euo pipefail
 
 if [ $# -ne 1 ]; then echo "usage: ./apply.sh /path/to/sipeed/picoclaw"; exit 2; fi
 TARGET=$1
-SOURCE_DIR=$(cd $(dirname "$0") && pwd)
+SOURCE_DIR=$(cd "$(dirname "$0")" && pwd)
 
 cd "$TARGET"
 echo "applying picoclaw-opi-zero3-overlay onto $TARGET"
